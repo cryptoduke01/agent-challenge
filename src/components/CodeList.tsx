@@ -76,10 +76,10 @@ export function CodeList({ sessions, onSelectSession, onDeleteSession, isLoading
       let comparison = 0;
       switch (sortBy) {
         case 'name':
-          comparison = a.fileName.localeCompare(b.fileName);
+          comparison = a.name.localeCompare(b.name);
           break;
         case 'score':
-          comparison = (a.analysis?.qualityScore || 0) - (b.analysis?.qualityScore || 0);
+          comparison = (a.files[0]?.analysis?.qualityScore || 0) - (b.files[0]?.analysis?.qualityScore || 0);
           break;
         case 'date':
         default:
