@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { CodeFile, AnalysisSession, CodeAnalysisResult } from '@/lib/code-types';
+import { CodeFile, AnalysisSession, CodeAnalysis } from '@/lib/code-types';
 import { codeAgentClient } from '@/lib/code-agent-client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
