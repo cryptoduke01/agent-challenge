@@ -63,13 +63,14 @@ export function CodeCard({ session, onViewDetails, onDelete }: CodeCardProps) {
 
   const handleDownload = async () => {
     try {
-      const reportContent = `CodeGuardian Analysis Report\n\nFile: ${session.fileName}\nPath: ${session.filePath}\nLanguage: ${session.language}\nStatus: ${session.status}\nCreated: ${new Date(session.createdAt).toLocaleString()}\n\nAnalysis Results:\nQuality Score: ${session.analysis?.qualityScore || 'N/A'}/100\nComplexity: ${session.analysis?.complexity?.cyclomatic || 'N/A'}\nIssues: ${session.analysis?.issues?.length || 0}\n\nSuggestions:\n${session.analysis?.suggestions?.map(s => `• ${s}`).join('\n') || 'No suggestions available.'}`;
+      const firstFile = session.files[0];
+      const reportContent = `Sentra AI Analysis Report\n\nSession: ${session.name}\nStatus: ${session.status}\nCreated: ${new Date(session.createdAt).toLocaleString()}\n\nFiles Analyzed: ${session.files.length}\n\n${session.files.map(file => `File: ${file.name}\nPath: ${file.path}\nLanguage: ${file.language}\nSize: ${file.size} bytes\nLast Modified: ${new Date(file.lastModified).toLocaleString()}\n\nAnalysis Results:\nQuality Score: ${file.analysis?.qualityScore || 'N/A'}/100\nComplexity: ${file.analysis?.complexity?.cyclomatic || 'N/A'}\nIssues: ${file.analysis?.issues?.length || 0}\n\nSuggestions:\n${file.analysis?.suggestions?.map(s => `• ${s}`).join('\n') || 'No suggestions available.'}\n\n---\n`).join('\n')}`;
       
       const blob = new Blob([reportContent], { type: 'text/plain' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `codeguardian-${session.fileName}-${Date.now()}.txt`;
+      a.download = `sentra-${session.name}-${Date.now()}.txt`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -79,7 +80,7 @@ export function CodeCard({ session, onViewDetails, onDelete }: CodeCardProps) {
     }
   };
 
-  const qualityBadge = getQualityBadge(session.analysis?.qualityScore || 0);
+  const qualityBadge = getQualityBadge(session.files[0]?.analysis?.qualityScore || 0);
 
   return (
     <motion.div
@@ -116,29 +117,29 @@ export function CodeCard({ session, onViewDetails, onDelete }: CodeCardProps) {
 
         <CardContent className="space-y-4">
           {/* Analysis Summary */}
-          {session.analysis && (
+          {session.files[0]?.analysis && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center">
-                <div className={`text-2xl font-bold ${getQualityColor(session.analysis.qualityScore)}`}>
-                  {session.analysis.qualityScore}
+                <div className={`text-2xl font-bold ${getQualityColor(session.files[0].analysis.qualityScore)}`}>
+                  {session.files[0].analysis.qualityScore}
                 </div>
                 <div className="text-xs text-gray-400">Quality Score</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-blue-400">
-                  {session.analysis.complexity?.cyclomatic || 0}
+                  {session.files[0].analysis.complexity?.cyclomatic || 0}
                 </div>
                 <div className="text-xs text-gray-400">Complexity</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-yellow-400">
-                  {session.analysis.issues?.length || 0}
+                  {session.files[0].analysis.issues?.length || 0}
                 </div>
                 <div className="text-xs text-gray-400">Issues</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-purple-400">
-                  {session.analysis.suggestions?.length || 0}
+                  {session.files[0].analysis.suggestions?.length || 0}
                 </div>
                 <div className="text-xs text-gray-400">Suggestions</div>
               </div>
@@ -155,26 +156,26 @@ export function CodeCard({ session, onViewDetails, onDelete }: CodeCardProps) {
               <Clock className="h-3 w-3 mr-1" />
               {formatDistanceToNow(new Date(session.createdAt), { addSuffix: true })}
             </Badge>
-            {session.analysis?.metrics && (
+            {session.files[0]?.analysis?.metrics && (
               <>
                 <Badge className="bg-gray-700/50 text-gray-300">
                   <FileCode className="h-3 w-3 mr-1" />
-                  {session.analysis.metrics.linesOfCode} lines
+                  {session.files[0].analysis.metrics.linesOfCode} lines
                 </Badge>
                 <Badge className="bg-gray-700/50 text-gray-300">
                   <Database className="h-3 w-3 mr-1" />
-                  {session.analysis.metrics.functions} functions
+                  {session.files[0].analysis.metrics.functions} functions
                 </Badge>
               </>
             )}
           </div>
 
           {/* Quick Insights */}
-          {session.analysis?.suggestions && session.analysis.suggestions.length > 0 && (
+          {session.files[0]?.analysis?.suggestions && session.files[0].analysis.suggestions.length > 0 && (
             <div className="space-y-2">
               <h4 className="text-sm font-medium text-gray-300">Quick Insights</h4>
               <div className="space-y-1">
-                {session.analysis.suggestions.slice(0, 2).map((suggestion, index) => (
+                {session.files[0].analysis.suggestions.slice(0, 2).map((suggestion, index) => (
                   <motion.div
                     key={index}
                     initial={{ opacity: 0, x: -10 }}
