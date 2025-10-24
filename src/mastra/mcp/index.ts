@@ -1,6 +1,6 @@
 import { MCPServer } from "@mastra/mcp"
 import {
-  // CodeGuardian AI Code Analysis Tools
+  // Sentra AI Code Analysis Tools
   analyzeCodeTool,
   securityScannerTool,
   performanceOptimizerTool,
@@ -8,31 +8,16 @@ import {
   repositoryConnectorTool,
   analyzeFileTool,
   reportGeneratorTool,
-  // Legacy FlowSync Task Management Tools
-  createTaskTool,
-  getTaskTool,
-  getAllTasksTool,
-  updateTaskTool,
-  deleteTaskTool,
-  toggleTaskStatusTool,
-  calculatePriorityTool,
-  recalculateAllPrioritiesTool,
-  parseDeadlineTool,
-  detectOverdueTasksTool,
-  getUpcomingDeadlinesTool,
-  categorizeTaskTool,
-  extractTagsTool,
-  suggestCategoryTool,
-  // Legacy weather tool
+  // Weather tool
   weatherTool
 } from "../tools";
-import { weatherAgent, codeguardianAgent } from "../agents";
+import { weatherAgent, sentraAgent } from "../agents";
 
 export const server = new MCPServer({
   name: "Sentra AI Code Analysis Server",
   version: "2.0.0",
   tools: {
-    // CodeGuardian AI Code Analysis Tools
+    // Sentra AI Code Analysis Tools
     analyzeCodeTool,
     securityScannerTool,
     performanceOptimizerTool,
@@ -40,25 +25,10 @@ export const server = new MCPServer({
     repositoryConnectorTool,
     analyzeFileTool,
     reportGeneratorTool,
-    // Legacy FlowSync Task Management Tools
-    createTaskTool,
-    getTaskTool,
-    getAllTasksTool,
-    updateTaskTool,
-    deleteTaskTool,
-    toggleTaskStatusTool,
-    calculatePriorityTool,
-    recalculateAllPrioritiesTool,
-    parseDeadlineTool,
-    detectOverdueTasksTool,
-    getUpcomingDeadlinesTool,
-    categorizeTaskTool,
-    extractTagsTool,
-    suggestCategoryTool,
-    // Legacy weather tool
+    // Weather tool
     weatherTool
   },
-  agents: { weatherAgent, codeguardianAgent }, // these agents will become tools "ask_weatherAgent" and "ask_codeguardianAgent"
+  agents: { weatherAgent, sentraAgent }, // these agents will become tools "ask_weatherAgent" and "ask_sentraAgent"
   // workflows: {
   // dataProcessingWorkflow, // this workflow will become tool "run_dataProcessingWorkflow"
   // }

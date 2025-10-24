@@ -1,4 +1,4 @@
-// CodeGuardian AI Code Analysis Tools
+// Sentra AI Code Analysis Tools
 export {
   analyzeCodeTool
 } from './code-analyzer';
@@ -23,33 +23,6 @@ export {
 export {
   reportGeneratorTool
 } from './report-generator';
-
-// Legacy FlowSync Task Management Tools (keeping for compatibility)
-export {
-  createTaskTool,
-  getTaskTool,
-  getAllTasksTool,
-  updateTaskTool,
-  deleteTaskTool,
-  toggleTaskStatusTool
-} from './task-crud';
-
-export {
-  calculatePriorityTool,
-  recalculateAllPrioritiesTool
-} from './priority-calculator';
-
-export {
-  parseDeadlineTool,
-  detectOverdueTasksTool,
-  getUpcomingDeadlinesTool
-} from './deadline-detector';
-
-export {
-  categorizeTaskTool,
-  extractTagsTool,
-  suggestCategoryTool
-} from './task-categorizer';
 
 // Legacy weather tool (keeping for compatibility)
 import { createTool } from '@mastra/core/tools';

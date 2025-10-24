@@ -35,8 +35,5 @@ export const weatherAgent = new Agent({
   }),
 });
 
-// Export FlowSync agent
-export { flowsyncAgent } from './flowsync-agent';
-
-// Export CodeGuardian agent
-export { codeguardianAgent } from './codeguardian-agent';
+// Export Sentra agent
+export { sentraAgent } from './codeguardian-agent';

@@ -1,6 +1,6 @@
 import { Mastra } from "@mastra/core/mastra";
 import { LibSQLStore } from "@mastra/libsql";
-import { weatherAgent, flowsyncAgent, codeguardianAgent } from "./agents";
+import { weatherAgent, sentraAgent } from "./agents";
 import { ConsoleLogger, LogLevel } from "@mastra/core/logger";
 import { server } from "./mcp";
 
@@ -9,8 +9,7 @@ const LOG_LEVEL = process.env.LOG_LEVEL as LogLevel || "info";
 export const mastra = new Mastra({
   agents: {
     weatherAgent,
-    flowsyncAgent,
-    codeguardianAgent
+    sentraAgent
   },
   mcpServers: {
     server
