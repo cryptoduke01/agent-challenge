@@ -126,16 +126,24 @@ export function CodeInput({ onNewAnalysis, onAgentResponse }: CodeInputProps) {
       // Create analysis session
       const session: AnalysisSession = {
         id: Date.now().toString(),
-        fileName: fileName || 'code.js',
-        filePath: inputType === 'repo' ? repoUrl : `/${fileName}`,
-        language: language,
-        analysis: analysisResult,
+        name: fileName || 'code.js',
+        files: [{
+          id: `file-${Date.now()}`,
+          name: fileName || 'code.js',
+          path: inputType === 'repo' ? repoUrl : `/${fileName}`,
+          language: language,
+          content: code,
+          size: code.length,
+          lastModified: new Date().toISOString(),
+          analysis: analysisResult
+        }],
         createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
         status: 'completed'
       };
 
       onNewAnalysis(session);
-      onAgentResponse(`Analysis completed for ${session.fileName}. Quality score: ${analysisResult.qualityScore}/100`);
+      onAgentResponse(`Analysis completed for ${session.name}. Quality score: ${analysisResult.qualityScore}/100`);
 
       // Reset form
       setCode('');
