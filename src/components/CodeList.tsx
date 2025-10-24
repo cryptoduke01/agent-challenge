@@ -66,8 +66,9 @@ export function CodeList({ sessions, onSelectSession, onDeleteSession, isLoading
 
   const filteredSessions = sessions
     .filter(session => {
-      const matchesSearch = session.fileName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           session.filePath.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSearch = session.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           session.files[0]?.path?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           session.files[0]?.name?.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesStatus = filterStatus === 'all' || session.status === filterStatus;
       return matchesSearch && matchesStatus;
     })
