@@ -49,12 +49,12 @@ export function CodeList({ sessions, onSelectSession, onDeleteSession, isLoading
 
   const handleDownloadAll = async () => {
     try {
-      const reportContent = `CodeGuardian Analysis Report\n\nGenerated: ${new Date().toLocaleDateString()}\n\nSessions:\n${sessions.map(s => `- ${s.fileName} (${s.status})`).join('\n')}`;
+      const reportContent = `Sentra AI Analysis Report\n\nGenerated: ${new Date().toLocaleDateString()}\n\nSessions:\n${sessions.map(s => `- ${s.name} (${s.status})`).join('\n')}`;
       const blob = new Blob([reportContent], { type: 'text/plain' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `codeguardian-report-${Date.now()}.txt`;
+      a.download = `sentra-report-${Date.now()}.txt`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
