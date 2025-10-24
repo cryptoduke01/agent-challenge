@@ -35,5 +35,5 @@ export const weatherAgent = new Agent({
   }),
 });
 
-// Export Sentra agent
-export { sentraAgent } from './codeguardian-agent';
+// Export Sentra agent (codeguardianAgent)
+export { codeguardianAgent as sentraAgent } from './codeguardian-agent';
