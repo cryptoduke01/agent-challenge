@@ -73,17 +73,25 @@ export default function Home() {
       const mockSessions: AnalysisSession[] = [
         {
           id: '1',
-          fileName: 'utils.js',
-          filePath: '/src/utils.js',
-          language: 'javascript',
-          analysis: {
-            qualityScore: 85,
-            complexity: { cyclomatic: 3, cognitive: 2, maintainability: 80 },
-            issues: [],
-            metrics: { linesOfCode: 12, functions: 1, classes: 0, comments: 2 },
-            suggestions: ['Consider adding error handling', 'Add unit tests']
-          },
+          name: 'utils.js',
+          files: [{
+            id: 'file-1',
+            name: 'utils.js',
+            path: '/src/utils.js',
+            language: 'javascript',
+            content: 'function helper() { return true; }',
+            size: 1024,
+            lastModified: new Date().toISOString(),
+            analysis: {
+              qualityScore: 85,
+              complexity: { cyclomatic: 3, cognitive: 2, maintainability: 80 },
+              issues: [],
+              metrics: { linesOfCode: 12, functions: 1, classes: 0, comments: 2 },
+              suggestions: ['Consider adding error handling', 'Add unit tests']
+            }
+          }],
           createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
           status: 'completed'
         }
       ];
@@ -103,7 +111,7 @@ export default function Home() {
     const analysisMessage = {
       id: Date.now().toString(),
       role: 'assistant' as const,
-      content: `🔍 **Analysis Complete for ${session.fileName}**\n\n**Quality Score:** ${session.analysis?.qualityScore || 'N/A'}/100\n**Complexity:** ${session.analysis?.complexity?.cyclomatic || 'N/A'}\n**Issues Found:** ${session.analysis?.issues?.length || 0}\n\n**Key Insights:**\n${session.analysis?.suggestions?.slice(0, 3).map(s => `• ${s}`).join('\n') || 'No specific issues detected.'}\n\n**Recommendations:**\n${session.analysis?.suggestions?.slice(3).map(s => `• ${s}`).join('\n') || 'Code looks good!'}`,
+      content: `🔍 **Analysis Complete for ${session.name}**\n\n**Quality Score:** ${session.files[0]?.analysis?.qualityScore || 'N/A'}/100\n**Complexity:** ${session.files[0]?.analysis?.complexity?.cyclomatic || 'N/A'}\n**Issues Found:** ${session.files[0]?.analysis?.issues?.length || 0}\n\n**Key Insights:**\n${session.files[0]?.analysis?.suggestions?.slice(0, 3).map(s => `• ${s}`).join('\n') || 'No specific issues detected.'}\n\n**Recommendations:**\n${session.files[0]?.analysis?.suggestions?.slice(3).map(s => `• ${s}`).join('\n') || 'Code looks good!'}`,
       timestamp: new Date()
     };
     setChatMessages(prev => [...prev, analysisMessage]);
