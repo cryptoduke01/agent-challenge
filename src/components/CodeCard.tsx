@@ -101,9 +101,9 @@ export function CodeCard({ session, onViewDetails, onDelete }: CodeCardProps) {
               </motion.div>
               <div>
                 <CardTitle className="text-lg font-semibold text-white">
-                  {session.fileName}
+                  {session.name}
                 </CardTitle>
-                <p className="text-sm text-gray-400">{session.filePath}</p>
+                <p className="text-sm text-gray-400">{session.files[0]?.path || 'No file path'}</p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
@@ -150,7 +150,7 @@ export function CodeCard({ session, onViewDetails, onDelete }: CodeCardProps) {
           <div className="flex flex-wrap gap-2">
             <Badge className="bg-gray-700/50 text-gray-300">
               <Code className="h-3 w-3 mr-1" />
-              {session.language}
+              {session.files[0]?.language || 'Unknown'}
             </Badge>
             <Badge className="bg-gray-700/50 text-gray-300">
               <Clock className="h-3 w-3 mr-1" />
