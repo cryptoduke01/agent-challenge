@@ -1,23 +1,94 @@
-# Builders' Challenge #3: AI Agents 102
-**Presented by Nosana and Mastra**
+# FlowSync - AI-Powered Task Management System
+**Built for the Nosana Builders Challenge - Agents 102**
 
-![Agent](./assets/NosanaBuildersChallenge03.jpg)
+![FlowSync](./assets/NosanaBuildersChallenge03.jpg)
 
-## Welcome to the AI Agent Challenge
+## 🤖 FlowSync: Intelligent Task Management
 
-Build and deploy intelligent AI agents using the **Mastra framework** on the **Nosana decentralized compute network**. Whether you're a beginner or an experienced developer, this challenge has something for everyone!
+FlowSync is an AI-powered task management system that helps users organize, prioritize, and manage their tasks through natural language interaction. Built with the **Mastra framework** and deployed on the **Nosana decentralized compute network**.
 
-## 🎯 Challenge Overview
+### ✨ Key Features
 
-**Your Mission:** Build an intelligent AI agent with a frontend interface and deploy it on Nosana's decentralized network.
+- **Natural Language Task Creation**: Create tasks using conversational language
+- **Smart Priority Calculation**: AI automatically calculates task priorities based on deadlines, keywords, and context
+- **Intelligent Categorization**: Automatically categorizes tasks into work, personal, urgent, learning, or meeting
+- **Deadline Detection**: Parses natural language deadlines like "tomorrow at 3pm" or "next Friday"
+- **Real-time Updates**: Live synchronization between agent actions and UI
+- **Comprehensive Task Management**: Full CRUD operations with filtering and sorting
 
-### What You'll Build
+## 🏗️ Architecture
 
-Create an AI agent that performs real-world tasks using:
-- **Mastra framework** for agent orchestration
-- **Tool calling** to interact with external services
-- **MCP (Model Context Protocol)** for enhanced capabilities
-- **Custom frontend** to showcase your agent's functionality
+FlowSync is built with a modern, scalable architecture:
+
+### Backend Components
+- **Mastra AI Agent**: Intelligent task management agent with natural language processing
+- **MCP Server**: Model Context Protocol server with 4 specialized tools
+- **Task Store**: In-memory task storage with real-time event emission
+- **Ollama Integration**: Powered by Qwen3:8b model via Nosana endpoint
+
+### Frontend Components
+- **Next.js 14**: Modern React framework with App Router
+- **TypeScript**: Full type safety throughout the application
+- **Tailwind CSS**: Utility-first styling with shadcn/ui components
+- **Real-time UI**: Live updates when agent modifies tasks
+
+### MCP Tools Implemented
+1. **Task CRUD Tool**: Create, read, update, delete tasks
+2. **Priority Calculator**: Smart priority scoring algorithm
+3. **Deadline Detector**: Natural language date parsing
+4. **Task Categorizer**: Automatic task categorization
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 18+ and pnpm
+- Access to Nosana network (for deployment)
+
+### Development Setup
+
+1. **Clone and Install**
+```bash
+git clone <your-fork-url>
+cd agent-challenge
+pnpm install
+```
+
+2. **Environment Configuration**
+```bash
+# Copy environment template
+cp .env.example .env.local
+
+# Configure your environment
+OLLAMA_API_URL=https://3yt39qx97wc9hqwwmylrphi4jsxrngjzxnjakkybnxbw.node.k8s.prd.nos.ci/api
+MODEL_NAME_AT_ENDPOINT=qwen3:8b
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
+
+3. **Start Development Servers**
+```bash
+# Terminal 1: Start the Mastra agent
+pnpm run dev:agent
+
+# Terminal 2: Start the Next.js frontend
+pnpm run dev:ui
+```
+
+4. **Access the Application**
+- Frontend: http://localhost:3000
+- Agent Playground: http://localhost:4111
+
+## 💬 Usage Examples
+
+### Natural Language Task Creation
+- "Remind me to call John tomorrow at 3pm"
+- "I need to finish the report by Friday"
+- "Create a high-priority task to review the quarterly budget"
+
+### AI-Powered Features
+- **Smart Prioritization**: "What's my highest priority task?"
+- **Deadline Management**: "Show me all overdue tasks"
+- **Category Organization**: "Organize my work tasks by priority"
+- **Task Suggestions**: "What should I work on next?"
 
 ### Agent Ideas & Examples
 

@@ -19,7 +19,9 @@ export const weatherAgent = new Agent({
   name: "Weather Agent",
   tools: { weatherTool },
   // model: openai("gpt-4o"), // uncomment this line to use openai
-  model: ollama(process.env.NOS_MODEL_NAME_AT_ENDPOINT || process.env.MODEL_NAME_AT_ENDPOINT || "qwen3:8b"), // comment this line to use openai
+  model: ollama(process.env.NOS_MODEL_NAME_AT_ENDPOINT || process.env.MODEL_NAME_AT_ENDPOINT || "qwen3:8b", {
+    modelVersion: "v1"
+  }), // comment this line to use openai
   instructions: "You are a helpful assistant.",
   description: "An agent that can get the weather for a given location.",
   memory: new Memory({
@@ -31,4 +33,10 @@ export const weatherAgent = new Agent({
       },
     },
   }),
-})
+});
+
+// Export FlowSync agent
+export { flowsyncAgent } from './flowsync-agent';
+
+// Export CodeGuardian agent
+export { codeguardianAgent } from './codeguardian-agent';

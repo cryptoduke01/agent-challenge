@@ -1,3 +1,57 @@
+// CodeGuardian AI Code Analysis Tools
+export {
+  analyzeCodeTool
+} from './code-analyzer';
+
+export {
+  securityScannerTool
+} from './security-scanner';
+
+export {
+  performanceOptimizerTool
+} from './performance-optimizer';
+
+export {
+  documentationGeneratorTool
+} from './documentation-generator';
+
+export {
+  repositoryConnectorTool,
+  analyzeFileTool
+} from './repository-connector';
+
+export {
+  reportGeneratorTool
+} from './report-generator';
+
+// Legacy FlowSync Task Management Tools (keeping for compatibility)
+export {
+  createTaskTool,
+  getTaskTool,
+  getAllTasksTool,
+  updateTaskTool,
+  deleteTaskTool,
+  toggleTaskStatusTool
+} from './task-crud';
+
+export {
+  calculatePriorityTool,
+  recalculateAllPrioritiesTool
+} from './priority-calculator';
+
+export {
+  parseDeadlineTool,
+  detectOverdueTasksTool,
+  getUpcomingDeadlinesTool
+} from './deadline-detector';
+
+export {
+  categorizeTaskTool,
+  extractTagsTool,
+  suggestCategoryTool
+} from './task-categorizer';
+
+// Legacy weather tool (keeping for compatibility)
 import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
 

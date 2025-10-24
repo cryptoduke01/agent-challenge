@@ -1,0 +1,43 @@
+{
+  "name": "sentra-ai-agent",
+  "description": "Sentra AI Code Analysis Agent - Intelligent code review and security assistant",
+  "image": "yourusername/sentra-ai:latest",
+  "ports": [
+    {
+      "containerPort": 3000,
+      "protocol": "TCP"
+    }
+  ],
+  "resources": {
+    "requests": {
+      "memory": "2Gi",
+      "cpu": "1000m"
+    },
+    "limits": {
+      "memory": "4Gi",
+      "cpu": "2000m"
+    }
+  },
+  "env": [
+    {
+      "name": "OLLAMA_API_URL",
+      "value": "https://3yt39qx97wc9hqwwmylrphi4jsxrngjzxnjakkybnxbw.node.k8s.prd.nos.ci/api"
+    },
+    {
+      "name": "MODEL_NAME_AT_ENDPOINT",
+      "value": "qwen3:8b"
+    },
+    {
+      "name": "NODE_ENV",
+      "value": "production"
+    }
+  ],
+  "restartPolicy": "Always",
+  "healthCheck": {
+    "path": "/",
+    "port": 3000,
+    "interval": "30s",
+    "timeout": "10s",
+    "retries": 3
+  }
+}

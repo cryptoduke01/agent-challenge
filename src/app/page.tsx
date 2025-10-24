@@ -1,256 +1,594 @@
-"use client";
+'use client';
 
-import { useCoAgent, useCopilotAction } from "@copilotkit/react-core";
-import { CopilotKitCSSProperties, CopilotSidebar } from "@copilotkit/react-ui";
-import { useState } from "react";
-import { AgentState as AgentStateSchema } from "@/mastra/agents";
-import { z } from "zod";
-import { WeatherToolResult } from "@/mastra/tools";
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { CodeFile, AnalysisSession } from '@/lib/code-types';
+import { codeAgentClient } from '@/lib/code-agent-client';
+import { CodeInput } from '@/components/CodeInput';
+import { CodeList } from '@/components/CodeList';
+import { AnalysisDashboard } from '@/components/AnalysisDashboard';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Shield,
+  Zap,
+  FileCode,
+  Bot,
+  Plus,
+  MessageSquare,
+  Code,
+  Search,
+  BarChart3,
+  GitBranch,
+  Database,
+  CheckCircle2,
+  Clock,
+  Download,
+  Upload,
+  Sparkles,
+  Brain,
+  Target,
+  TrendingUp,
+  Send,
+  Loader2,
+  X,
+  FileText,
+  AlertTriangle,
+  CheckCircle
+} from 'lucide-react';
 
-type AgentState = z.infer<typeof AgentStateSchema>;
+export default function Home() {
+  const [files, setFiles] = useState<CodeFile[]>([]);
+  const [sessions, setSessions] = useState<AnalysisSession[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [agentResponse, setAgentResponse] = useState<string>('');
+  const [currentSession, setCurrentSession] = useState<AnalysisSession | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisProgress, setAnalysisProgress] = useState(0);
+  const [chatMessages, setChatMessages] = useState<Array<{id: string, role: 'user' | 'assistant', content: string, timestamp: Date}>>([]);
+  const [chatInput, setChatInput] = useState('');
+  const [isChatLoading, setIsChatLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('analyze');
 
-export default function CopilotKitPage() {
-  const [themeColor, setThemeColor] = useState("#6366f1");
+  useEffect(() => {
+    loadSessions();
+    // Initialize with a welcome message
+    setChatMessages([{
+      id: '1',
+      role: 'assistant',
+      content: 'Welcome to Sentra! I can help you analyze code, detect security vulnerabilities, optimize performance, and generate comprehensive reports. What would you like to analyze today?',
+      timestamp: new Date()
+    }]);
+  }, []);
 
-  // 🪁 Frontend Actions: https://docs.copilotkit.ai/guides/frontend-actions
-  useCopilotAction({
-    name: "setThemeColor",
-    parameters: [{
-      name: "themeColor",
-      description: "The theme color to set. Make sure to pick nice colors.",
-      required: true,
-    }],
-    handler({ themeColor }) {
-      setThemeColor(themeColor);
-    },
-  });
+  const loadSessions = async () => {
+    try {
+      setIsLoading(true);
+      // Simulate loading sessions
+      const mockSessions: AnalysisSession[] = [
+        {
+          id: '1',
+          fileName: 'utils.js',
+          filePath: '/src/utils.js',
+          language: 'javascript',
+          analysis: {
+            qualityScore: 85,
+            complexity: { cyclomatic: 3, cognitive: 2, maintainability: 80 },
+            issues: [],
+            metrics: { linesOfCode: 12, functions: 1, classes: 0, comments: 2 },
+            suggestions: ['Consider adding error handling', 'Add unit tests']
+          },
+          createdAt: new Date().toISOString(),
+          status: 'completed'
+        }
+      ];
+      setSessions(mockSessions);
+    } catch (error) {
+      console.error('Failed to load sessions:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleNewAnalysis = async (session: AnalysisSession) => {
+    setSessions(prev => [session, ...prev]);
+    setCurrentSession(session);
+    
+    // Add comprehensive analysis to chat
+    const analysisMessage = {
+      id: Date.now().toString(),
+      role: 'assistant' as const,
+      content: `🔍 **Analysis Complete for ${session.fileName}**\n\n**Quality Score:** ${session.analysis?.qualityScore || 'N/A'}/100\n**Complexity:** ${session.analysis?.complexity?.cyclomatic || 'N/A'}\n**Issues Found:** ${session.analysis?.issues?.length || 0}\n\n**Key Insights:**\n${session.analysis?.suggestions?.slice(0, 3).map(s => `• ${s}`).join('\n') || 'No specific issues detected.'}\n\n**Recommendations:**\n${session.analysis?.suggestions?.slice(3).map(s => `• ${s}`).join('\n') || 'Code looks good!'}`,
+      timestamp: new Date()
+    };
+    setChatMessages(prev => [...prev, analysisMessage]);
+  };
+
+  const handleAgentResponse = (response: string) => {
+    setAgentResponse(response);
+  };
+
+  const handleSelectSession = (session: AnalysisSession) => {
+    setCurrentSession(session);
+  };
+
+  const handleDeleteSession = async (sessionId: string) => {
+    try {
+      setSessions(prev => prev.filter(s => s.id !== sessionId));
+      if (currentSession?.id === sessionId) {
+        setCurrentSession(null);
+      }
+    } catch (error) {
+      console.error('Failed to delete session:', error);
+    }
+  };
+
+  const handleChatSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatInput.trim() || isChatLoading) return;
+
+    const userMessage = {
+      id: Date.now().toString(),
+      role: 'user' as const,
+      content: chatInput,
+      timestamp: new Date()
+    };
+    setChatMessages(prev => [...prev, userMessage]);
+
+    const currentInput = chatInput;
+    setChatInput('');
+    setIsChatLoading(true);
+
+    // Add loading message
+    const loadingMessage = {
+      id: (Date.now() + 1).toString(),
+      role: 'assistant' as const,
+      content: '🤔 Thinking...',
+      timestamp: new Date(),
+      isLoading: true
+    };
+    setChatMessages(prev => [...prev, loadingMessage]);
+
+    try {
+      // Call real AI chat API
+      const response = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: currentInput,
+          context: {
+            sessions: sessions,
+            currentSession: currentSession
+          }
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('AI chat failed');
+      }
+
+      const data = await response.json();
+      
+      // Remove loading message and add real response
+      setChatMessages(prev => prev.filter(msg => msg.id !== loadingMessage.id));
+      
+      const aiResponse = {
+        id: (Date.now() + 2).toString(),
+        role: 'assistant' as const,
+        content: data.response,
+        timestamp: new Date()
+      };
+
+      setChatMessages(prev => [...prev, aiResponse]);
+
+      // If the response includes analysis, trigger analysis
+      if (data.analysis && currentSession) {
+        handleNewAnalysis(currentSession);
+      }
+
+    } catch (error) {
+      console.error('Chat error:', error);
+      
+      // Remove loading message and add error
+      setChatMessages(prev => prev.filter(msg => msg.id !== loadingMessage.id));
+      
+      const errorResponse = {
+        id: (Date.now() + 2).toString(),
+        role: 'assistant' as const,
+        content: `❌ **Error**: I encountered an issue processing your request. Please try again or check if the Mastra agent is running on port 4111.`,
+        timestamp: new Date()
+      };
+      setChatMessages(prev => [...prev, errorResponse]);
+    } finally {
+      setIsChatLoading(false);
+    }
+  };
+
+  const downloadReport = async (sessionId: string) => {
+    try {
+      // Simulate report download
+      const reportContent = `CodeGuardian Analysis Report\n\nSession: ${sessionId}\nDate: ${new Date().toLocaleDateString()}\n\nThis is a comprehensive analysis report generated by CodeGuardian AI.`;
+      const blob = new Blob([reportContent], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `codeguardian-report-${sessionId}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Failed to download report:', error);
+    }
+  };
+
+  const handleViewDetails = (session: AnalysisSession) => {
+    setCurrentSession(session);
+    setActiveTab('dashboard');
+  };
+
+  const analyzedFiles = sessions.filter(s => s.status === 'completed');
+  const pendingFiles = sessions.filter(s => s.status === 'pending');
 
   return (
-    <main style={{ "--copilot-kit-primary-color": themeColor } as CopilotKitCSSProperties}>
-      <YourMainContent themeColor={themeColor} />
-      <CopilotSidebar
-        clickOutsideToClose={false}
-        defaultOpen={true}
-        labels={{
-          title: "Popup Assistant",
-          initial: "👋 Hi, there! You're chatting with an agent. This agent comes with a few tools to get you started.\n\nFor example you can try:\n- **Frontend Tools**: \"Set the theme to orange\"\n- **Shared State**: \"Write a proverb about AI\"\n- **Generative UI**: \"Get the weather in SF\"\n\nAs you interact with the agent, you'll see the UI update in real-time to reflect the agent's **state**, **tool calls**, and **progress**."
-        }}
-      />
-    </main>
-  );
-}
-
-function YourMainContent({ themeColor }: { themeColor: string }) {
-  // 🪁 Shared State: https://docs.copilotkit.ai/coagents/shared-state
-  const { state, setState } = useCoAgent<AgentState>({
-    name: "weatherAgent",
-    initialState: {
-      proverbs: [
-        "CopilotKit may be new, but its the best thing since sliced bread.",
-      ],
-    },
-  })
-
-  //🪁 Generative UI: https://docs.copilotkit.ai/coagents/generative-ui
-  useCopilotAction({
-    name: "weatherTool",
-    description: "Get the weather for a given location.",
-    available: "frontend",
-    parameters: [
-      { name: "location", type: "string", required: true },
-    ],
-    render: ({ args, result, status }) => {
-      return <WeatherCard
-        location={args.location}
-        themeColor={themeColor}
-        result={result}
-        status={status}
-      />
-    },
-  });
-
-  useCopilotAction({
-    name: "updateWorkingMemory",
-    available: "frontend",
-    render: ({ args }) => {
-      return <div style={{ backgroundColor: themeColor }} className="rounded-2xl max-w-md w-full text-white p-4">
-        <p>✨ Memory updated</p>
-        <details className="mt-2">
-          <summary className="cursor-pointer text-white">See updates</summary>
-          <pre style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }} className="overflow-x-auto text-sm bg-white/20 p-4 rounded-lg mt-2">
-            {JSON.stringify(args, null, 2)}
-          </pre>
-        </details>
+    <div className="main-container">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <motion.div 
+          className="absolute -top-40 -right-40 w-80 h-80 bg-element-1 rounded-full mix-blend-multiply filter blur-xl opacity-20"
+          animate={{
+            scale: [1, 1.2, 1],
+            rotate: [0, 180, 360],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            ease: "linear"
+          }}
+        />
+        <motion.div 
+          className="absolute -bottom-40 -left-40 w-80 h-80 bg-element-2 rounded-full mix-blend-multiply filter blur-xl opacity-15"
+          animate={{
+            scale: [1.2, 1, 1.2],
+            rotate: [360, 180, 0],
+          }}
+          transition={{
+            duration: 25,
+            repeat: Infinity,
+            ease: "linear"
+          }}
+        />
       </div>
-    },
-  });
 
-  return (
-    <div
-      style={{ backgroundColor: themeColor }}
-      className="h-screen w-screen flex justify-center items-center flex-col transition-colors duration-300"
-    >
-      <div className="bg-white/20 backdrop-blur-md p-8 rounded-2xl shadow-xl max-w-2xl w-full">
-        <h1 className="text-4xl font-bold text-white mb-2 text-center">Proverbs</h1>
-        <p className="text-gray-200 text-center italic mb-6">This is a demonstrative page, but it could be anything you want! 🪁</p>
-        <hr className="border-white/20 my-6" />
-        <div className="flex flex-col gap-3">
-          {state.proverbs?.map((proverb, index) => (
-            <div
-              key={index}
-              className="bg-white/15 p-4 rounded-xl text-white relative group hover:bg-white/20 transition-all"
-            >
-              <p className="pr-8">{proverb}</p>
-              <button
-                onClick={() => setState({
-                  ...state,
-                  proverbs: state.proverbs?.filter((_, i) => i !== index),
-                })}
-                className="absolute right-3 top-3 opacity-0 group-hover:opacity-100 transition-opacity 
-                  bg-red-500 hover:bg-red-600 text-white rounded-full h-6 w-6 flex items-center justify-center"
+      <div className="relative z-10">
+        {/* Header */}
+        <motion.header 
+          className="glass-strong border-b border-white/10 p-6 sticky top-0 z-50 backdrop-blur-xl bg-black/90"
+          initial={{ y: -100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+        >
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <motion.div
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                whileTap={{ scale: 0.95 }}
+                className="p-2 bg-gradient-to-r from-white/20 to-white/10 rounded-lg border border-white/20"
               >
-                ✕
-              </button>
+                <Shield className="h-8 w-8 text-white" />
+              </motion.div>
+              <div>
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-gray-300 dark:from-white dark:to-gray-300 light:from-black light:to-gray-700 bg-clip-text text-transparent">Sentra</h1>
+                    <p className="text-gray-300 dark:text-gray-300 light:text-gray-600">AI-Powered Code Analysis & Security</p>
+              </div>
             </div>
-          ))}
+            <div className="flex items-center space-x-2">
+              <ThemeToggle />
+              <Badge className="glass border-white/30 text-white bg-white/10">
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Powered by Mastra Kit
+              </Badge>
+            </div>
+          </div>
+        </motion.header>
+
+        {/* Stats Cards */}
+        <motion.div 
+          className="max-w-7xl mx-auto p-4 sm:p-6"
+          initial={{ y: 50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+        >
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+            <motion.div
+              whileHover={{ scale: 1.05, y: -5 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Card className="glass border-white/20 bg-black/50">
+                <CardContent className="p-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-3 bg-white/10 rounded-lg border border-white/20">
+                      <FileCode className="h-6 w-6 text-white" />
         </div>
-        {state.proverbs?.length === 0 && <p className="text-center text-white/80 italic my-8">
-          No proverbs yet. Ask the assistant to add some!
-        </p>}
+                    <div>
+                      <p className="text-2xl font-bold text-white dark:text-white light:text-black">{analyzedFiles.length}</p>
+                      <p className="text-sm text-gray-400 dark:text-gray-400 light:text-gray-600">Files Analyzed</p>
       </div>
     </div>
-  );
-}
+                </CardContent>
+              </Card>
+            </motion.div>
 
-// Weather card component where the location and themeColor are based on what the agent
-// sets via tool calls.
-function WeatherCard({
-  location,
-  themeColor,
-  result,
-  status
-}: {
-  location?: string,
-  themeColor: string,
-  result: WeatherToolResult,
-  status: "inProgress" | "executing" | "complete"
-}) {
-  if (status !== "complete") {
-    return (
-      <div
-        className="rounded-xl shadow-xl mt-6 mb-4 max-w-md w-full"
-        style={{ backgroundColor: themeColor }}
-      >
-        <div className="bg-white/20 p-4 w-full">
-          <p className="text-white animate-pulse">Loading weather for {location}...</p>
+            <motion.div
+              whileHover={{ scale: 1.05, y: -5 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Card className="glass border-white/20 bg-black/50">
+                <CardContent className="p-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-3 bg-white/10 rounded-lg border border-white/20">
+                      <CheckCircle className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-white dark:text-white light:text-black">{analyzedFiles.length}</p>
+                      <p className="text-sm text-gray-400 dark:text-gray-400 light:text-gray-600">Completed</p>
         </div>
       </div>
-    )
-  }
+                </CardContent>
+              </Card>
+            </motion.div>
 
-  return (
-    <div
-      style={{ backgroundColor: themeColor }}
-      className="rounded-xl shadow-xl mt-6 mb-4 max-w-md w-full"
-    >
-      <div className="bg-white/20 p-4 w-full">
-        <div className="flex items-center justify-between">
+            <motion.div
+              whileHover={{ scale: 1.05, y: -5 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Card className="glass border-white/20 bg-black/50">
+                <CardContent className="p-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-3 bg-white/10 rounded-lg border border-white/20">
+                      <Clock className="h-6 w-6 text-white" />
+                    </div>
           <div>
-            <h3 className="text-xl font-bold text-white capitalize">{location}</h3>
-            <p className="text-white">Current Weather</p>
+                      <p className="text-2xl font-bold text-white dark:text-white light:text-black">{pendingFiles.length}</p>
+                      <p className="text-sm text-gray-400 dark:text-gray-400 light:text-gray-600">Pending</p>
           </div>
-          <WeatherIcon conditions={result?.conditions} />
         </div>
+                </CardContent>
+              </Card>
+            </motion.div>
 
-        <div className="mt-4 flex items-end justify-between">
-          <div className="text-3xl font-bold text-white">
-            <span className="">
-              {result?.temperature}° C
-            </span>
-            <span className="text-sm text-white/50">
-              {" / "}
-              {((result?.temperature * 9) / 5 + 32).toFixed(1)}° F
-            </span>
+            <motion.div
+              whileHover={{ scale: 1.05, y: -5 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Card className="glass border-white/20 bg-black/50">
+                <CardContent className="p-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-3 bg-white/10 rounded-lg border border-white/20">
+                      <Database className="h-6 w-6 text-white" />
+            </div>
+            <div>
+                      <p className="text-2xl font-bold text-white dark:text-white light:text-black">{sessions.length}</p>
+                      <p className="text-sm text-gray-400 dark:text-gray-400 light:text-gray-600">Sessions</p>
+            </div>
+            </div>
+                </CardContent>
+              </Card>
+            </motion.div>
           </div>
-          <div className="text-sm text-white">{result?.conditions}</div>
-        </div>
+        </motion.div>
 
-        <div className="mt-4 pt-4 border-t border-white">
-          <div className="grid grid-cols-3 gap-2 text-center">
-            <div>
-              <p className="text-white text-xs">Humidity</p>
-              <p className="text-white font-medium">{result?.humidity}%</p>
-            </div>
-            <div>
-              <p className="text-white text-xs">Wind</p>
-              <p className="text-white font-medium">{result?.windSpeed} mph</p>
-            </div>
-            <div>
-              <p className="text-white text-xs">Feels Like</p>
-              <p className="text-white font-medium">{result?.feelsLike}°</p>
-            </div>
-          </div>
+        {/* Main Content */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-8">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
+            <TabsList className="glass border-white/10 p-1 flex-wrap sticky top-20 z-40 backdrop-blur-xl bg-black/80">
+              <TabsTrigger 
+                value="analyze" 
+                className="data-[state=active]:bg-white/20 data-[state=active]:text-white"
+              >
+                <Code className="h-4 w-4 mr-2" />
+                Analyze
+              </TabsTrigger>
+              <TabsTrigger 
+                value="files" 
+                className="data-[state=active]:bg-white/20 data-[state=active]:text-white"
+              >
+                <FileCode className="h-4 w-4 mr-2" />
+                Files
+              </TabsTrigger>
+              <TabsTrigger 
+                value="dashboard" 
+                className="data-[state=active]:bg-white/20 data-[state=active]:text-white"
+              >
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Dashboard
+              </TabsTrigger>
+              <TabsTrigger 
+                value="chat" 
+                className="data-[state=active]:bg-white/20 data-[state=active]:text-white"
+              >
+                <MessageSquare className="h-4 w-4 mr-2" />
+                AI Chat
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="analyze" className="space-y-6">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+              >
+                <CodeInput 
+                  onNewAnalysis={handleNewAnalysis}
+                  onAgentResponse={handleAgentResponse}
+                />
+              </motion.div>
+            </TabsContent>
+
+            <TabsContent value="files" className="space-y-6">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+              >
+                <CodeList 
+                  sessions={sessions}
+                  onSelectSession={handleSelectSession}
+                  onDeleteSession={handleDeleteSession}
+                  isLoading={isLoading}
+                />
+              </motion.div>
+            </TabsContent>
+
+            <TabsContent value="dashboard" className="space-y-6">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+              >
+                {currentSession ? (
+                  <AnalysisDashboard session={currentSession} />
+                ) : (
+                  <Card className="glass">
+                    <CardContent className="p-12 text-center">
+                      <BarChart3 className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-xl font-semibold text-gray-300 mb-2">No Analysis Selected</h3>
+                      <p className="text-gray-400">Select a file from the Files tab to view detailed analysis</p>
+                    </CardContent>
+                  </Card>
+                )}
+              </motion.div>
+            </TabsContent>
+
+            <TabsContent value="chat" className="space-y-4 sm:space-y-6">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6"
+              >
+                {/* Chat Messages */}
+                <div className="lg:col-span-2">
+                  <Card className="glass h-96">
+                    <CardHeader>
+                      <CardTitle className="flex items-center space-x-2">
+                        <Brain className="h-5 w-5 text-blue-400" />
+                        <span>AI Assistant</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="h-80 overflow-y-auto space-y-4">
+                      <AnimatePresence>
+                        {chatMessages.map((message) => (
+                          <motion.div
+                            key={message.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                          >
+                            <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                              message.role === 'user' 
+                                ? 'bg-blue-500/20 text-blue-100' 
+                                : 'bg-gray-700/50 text-gray-200'
+                            }`}>
+                              <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                              <p className="text-xs text-gray-400 mt-1">
+                                {message.timestamp.toLocaleTimeString()}
+                              </p>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Quick Actions */}
+                <div className="space-y-4">
+                  <Card className="glass">
+                    <CardHeader>
+                      <CardTitle className="text-lg">Quick Actions</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <Button 
+                        className="w-full glass border-blue-500/30 text-blue-300 hover:bg-blue-500/20"
+                        onClick={() => setChatInput("Generate a roadmap for my project")}
+                      >
+                        <Target className="h-4 w-4 mr-2" />
+                        Generate Roadmap
+                      </Button>
+                      <Button 
+                        className="w-full glass border-green-500/30 text-green-300 hover:bg-green-500/20"
+                        onClick={() => setChatInput("Analyze my code for security issues")}
+                      >
+                        <Shield className="h-4 w-4 mr-2" />
+                        Security Scan
+                      </Button>
+                      <Button 
+                        className="w-full glass border-yellow-500/30 text-yellow-300 hover:bg-yellow-500/20"
+                        onClick={() => setChatInput("Optimize my code performance")}
+                      >
+                        <Zap className="h-4 w-4 mr-2" />
+                        Performance Check
+                      </Button>
+                      <Button 
+                        className="w-full glass border-purple-500/30 text-purple-300 hover:bg-purple-500/20"
+                        onClick={() => setChatInput("Generate documentation for my code")}
+                      >
+                        <FileText className="h-4 w-4 mr-2" />
+                        Generate Docs
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+              </motion.div>
+
+              {/* Chat Input */}
+              <motion.form 
+                onSubmit={handleChatSubmit}
+                className="flex space-x-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+              >
+                <div className="flex-1 max-w-2xl">
+                  <Textarea
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    placeholder="Ask me anything about code analysis, security, performance..."
+                    className="glass border-white/10 resize-none"
+                    rows={2}
+                    disabled={isChatLoading}
+                  />
+                </div>
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Button 
+                    type="submit" 
+                    className="glass border-blue-500/30 text-blue-300 hover:bg-blue-500/20 h-full px-6"
+                    disabled={isChatLoading || !chatInput.trim()}
+                  >
+                    {isChatLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Send className="h-4 w-4" />
+                    )}
+                  </Button>
+                </motion.div>
+              </motion.form>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </div>
-  );
-}
-
-function WeatherIcon({ conditions }: { conditions: string }) {
-  if (!conditions) return null;
-
-  if (
-    conditions.toLowerCase().includes("clear") ||
-    conditions.toLowerCase().includes("sunny")
-  ) {
-    return <SunIcon />;
-  }
-
-  if (
-    conditions.toLowerCase().includes("rain") ||
-    conditions.toLowerCase().includes("drizzle") ||
-    conditions.toLowerCase().includes("snow") ||
-    conditions.toLowerCase().includes("thunderstorm")
-  ) {
-    return <RainIcon />;
-  }
-
-  if (
-    conditions.toLowerCase().includes("fog") ||
-    conditions.toLowerCase().includes("cloud") ||
-    conditions.toLowerCase().includes("overcast")
-  ) {
-    return <CloudIcon />;
-  }
-
-  return <CloudIcon />;
-}
-
-// Simple sun icon for the weather card
-function SunIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-14 h-14 text-yellow-200">
-      <circle cx="12" cy="12" r="5" />
-      <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" strokeWidth="2" stroke="currentColor" />
-    </svg>
-  );
-}
-
-function RainIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-14 h-14 text-blue-200">
-      {/* Cloud */}
-      <path d="M7 15a4 4 0 0 1 0-8 5 5 0 0 1 10 0 4 4 0 0 1 0 8H7z" fill="currentColor" opacity="0.8" />
-      {/* Rain drops */}
-      <path d="M8 18l2 4M12 18l2 4M16 18l2 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" />
-    </svg>
-  );
-}
-
-function CloudIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-14 h-14 text-gray-200">
-      <path d="M7 15a4 4 0 0 1 0-8 5 5 0 0 1 10 0 4 4 0 0 1 0 8H7z" fill="currentColor" />
-    </svg>
   );
 }
