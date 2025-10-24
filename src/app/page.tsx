@@ -462,7 +462,11 @@ export default function Home() {
                 transition={{ duration: 0.6 }}
               >
                 {currentSession ? (
-                  <AnalysisDashboard session={currentSession} />
+                  <AnalysisDashboard 
+                    files={currentSession.files} 
+                    sessions={sessions} 
+                    onSessionUpdate={setSessions} 
+                  />
                 ) : (
                   <Card className="glass">
                     <CardContent className="p-12 text-center">
