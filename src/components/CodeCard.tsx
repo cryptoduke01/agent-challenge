@@ -92,7 +92,7 @@ export function CodeCard({ session, onViewDetails, onDelete }: CodeCardProps) {
       <Card className="glass border-white/10 hover:border-blue-500/30 transition-all duration-300">
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-centexr space-x-3">
               <motion.div
                 whileHover={{ scale: 1.1, rotate: 5 }}
                 className="p-2 bg-blue-500/20 rounded-lg"

@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { codeAgentClient } from '@/lib/code-agent-client';
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,7 +16,8 @@ export async function POST(request: NextRequest) {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
       
-      const response = await fetch('http://localhost:4111/api/agents/codeguardianAgent/generate/vnext', {
+      const MASRTA_BASE = process.env.NOS_AGENT_URL || 'http://localhost:4111';
+      const response = await fetch(`${MASRTA_BASE}/api/agents/sentraAgent/generate/vnext`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

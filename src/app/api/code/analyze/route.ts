@@ -13,7 +13,8 @@ export async function POST(request: NextRequest) {
 
     // Try to use real MCP tools from Mastra agent
     try {
-      const response = await fetch('http://localhost:4111/api/tools/analyzeCodeTool/execute', {
+      const MASRTA_BASE = process.env.NOS_AGENT_URL || 'http://localhost:4111';
+      const response = await fetch(`${MASRTA_BASE}/api/tools/analyzeCodeTool/execute`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
