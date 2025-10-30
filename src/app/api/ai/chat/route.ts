@@ -16,8 +16,8 @@ export async function POST(request: NextRequest) {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
       
-      const MASRTA_BASE = process.env.NOS_AGENT_URL || 'http://localhost:4111';
-      const response = await fetch(`${MASRTA_BASE}/api/agents/sentraAgent/generate/vnext`, {
+      const MASTRA_BASE = process.env.NOS_AGENT_URL || 'http://localhost:4111';
+      const response = await fetch(`${MASTRA_BASE}/api/agents/sentraAgent/generate/vnext`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

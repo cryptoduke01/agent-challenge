@@ -30,6 +30,10 @@ RUN --mount=type=cache,target=/pnpm/store \
 
 COPY . .
 
+# Disable lint/typecheck during container build to avoid dev plugin requirements
+ENV NEXT_DISABLE_ESLINT=1
+ENV NEXT_DISABLE_TYPECHECK=1
+
 RUN pnpm build
 
 FROM node:lts AS runtime

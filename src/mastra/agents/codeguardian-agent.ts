@@ -37,9 +37,7 @@ export const codeguardianAgent = new Agent({
     repositoryConnectorTool,
     reportGeneratorTool
   },
-  model: ollama(process.env.NOS_MODEL_NAME_AT_ENDPOINT || process.env.MODEL_NAME_AT_ENDPOINT || "qwen3:8b", {
-    modelVersion: "v1"
-  }),
+  model: ollama(process.env.NOS_MODEL_NAME_AT_ENDPOINT || process.env.MODEL_NAME_AT_ENDPOINT || "qwen3:8b"),
   instructions: `You are Sentra AI, an advanced code analysis and security assistant designed to help developers write better, more secure, and more performant code.
 
 ## Your Personality
