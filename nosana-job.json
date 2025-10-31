@@ -1,7 +1,7 @@
 {
   "name": "sentra-ai-agent",
   "description": "Sentra AI Code Analysis Agent - Intelligent code review and security assistant",
-  "image": "yourusername/sentra-ai:latest",
+  "image": "dukedotsol/sentra-ai:latest",
   "ports": [
     {
       "containerPort": 3000,
