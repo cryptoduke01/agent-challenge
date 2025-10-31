@@ -1,5 +1,3 @@
-# syntax=docker/dockerfile:1
-
 FROM node:lts AS build
 
 RUN corepack enable
@@ -26,13 +24,14 @@ RUN --mount=type=cache,target=/pnpm/store \
 COPY package.json ./
 
 RUN --mount=type=cache,target=/pnpm/store \
-  pnpm install --frozen-lockfile --prod --offline
+  pnpm install --frozen-lockfile --offline
 
 COPY . .
 
 # Disable lint/typecheck during container build to avoid dev plugin requirements
 ENV NEXT_DISABLE_ESLINT=1
 ENV NEXT_DISABLE_TYPECHECK=1
+ENV SKIP_ENV_VALIDATION=true
 
 RUN pnpm build
 
